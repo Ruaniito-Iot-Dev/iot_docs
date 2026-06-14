@@ -1,11 +1,6 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* =====================================================
-       VARIÁVEIS DE COR E TAMANHO
-       Para mudar as cores do site, edite só aqui.
-       Exemplo: trocar --orange por outro hex muda a cor
-       do card de temperatura em todo o site.
-    ===================================================== */
+    
     :root {
       --bg:        #f0f4f8;   /* fundo cinza claro da página */
       --bg-card:   #ffffff;   /* fundo branco dos cards e células */
