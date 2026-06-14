@@ -1,0 +1,504 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* =====================================================
+       VARIÁVEIS DE COR E TAMANHO
+       Para mudar as cores do site, edite só aqui.
+       Exemplo: trocar --orange por outro hex muda a cor
+       do card de temperatura em todo o site.
+    ===================================================== */
+    :root {
+      --bg:        #f0f4f8;   /* fundo cinza claro da página */
+      --bg-card:   #ffffff;   /* fundo branco dos cards e células */
+      --navy:      #0f1f3d;   /* azul escuro da sidebar */
+      --blue:      #2563eb;   /* azul dos destaques */
+      --orange:    #f97316;   /* laranja do card de temperatura */
+      --green:     #16a34a;   /* verde do card de gás normal */
+      --green-bg:  #dcfce7;   /* fundo verde claro do card de gás */
+      --red:       #dc2626;   /* vermelho para temperatura máxima */
+      --text:      #0f172a;   /* cor principal do texto */
+      --muted:     #64748b;   /* cor de texto secundário (cinza) */
+      --border:    #e2e8f0;   /* cor das bordas dos cards */
+      --sidebar-w: 220px;     /* largura da sidebar esquerda */
+      --cards-w:   260px;     /* largura da coluna de cards direita */
+    }
+
+    /* Layout principal: sidebar + conteúdo lado a lado, ocupando 100% da tela */
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      overflow: hidden; /* impede scroll na página toda */
+    }
+
+
+    /* =====================================================
+       SIDEBAR — coluna azul escura à esquerda
+    ===================================================== */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--navy);
+      display: flex;
+      flex-direction: column;
+      padding: 28px 0 24px;
+      flex-shrink: 0; /* não encolhe quando a tela diminui */
+    }
+
+    /* Bloco do logo/nome do projeto no topo da sidebar */
+    .sidebar-brand {
+      padding: 0 24px 28px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .sidebar-brand-name {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* Subtítulo abaixo do nome */
+    .sidebar-brand-sub {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      margin-top: 2px;
+    }
+
+    /* Indicador verde "Dados online" */
+    .sidebar-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 11px;
+      color: #4ade80;
+      font-weight: 500;
+    }
+
+    /* Bolinha verde piscante (o efeito de piscar é feito só com CSS) */
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #4ade80;
+      box-shadow: 0 0 8px #4ade80;
+      animation: piscar 2s infinite;
+    }
+
+    @keyframes piscar {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    /* Menu de navegação da sidebar */
+    .sidebar-nav {
+      padding: 20px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      flex: 1; /* ocupa o espaço restante entre o logo e o rodapé */
+    }
+
+    /* Cada item do menu */
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.5);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    /* Item ativo (página atual) */
+    .nav-item.active {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+
+    /* Hover nos itens inativos */
+    .nav-item:hover:not(.active) {
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.8);
+    }
+
+    .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+    /* Rodapé da sidebar — informações do dispositivo */
+    .sidebar-footer {
+      padding: 16px 24px 0;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .sidebar-footer-label {
+      font-size: 10px;
+      color: rgba(255,255,255,0.25);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    /* Texto com IP, firmware, etc */
+    .device-info {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      line-height: 1.7;
+    }
+
+
+    /* =====================================================
+       ÁREA PRINCIPAL — tudo à direita da sidebar
+    ===================================================== */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Barra superior (topbar) com título e status */
+    .topbar {
+      background: #fff;
+      padding: 0 28px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .topbar-left h1 {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* Subtítulo da topbar */
+    .topbar-left p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* Badge verde "Dados online" na topbar */
+    .topbar-badge {
+      background: var(--green-bg);
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Horário no canto direito da topbar */
+    .topbar-time {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+
+    /* Área abaixo da topbar: grade + cards */
+    .content {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+    }
+
+
+    /* =====================================================
+       ÁREA DO POWER BI — grade de gráficos no centro
+    ===================================================== */
+    .embed-area {
+      flex: 1;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow: hidden;
+    }
+
+    /* Título da seção (ex: "Análises — Power BI") */
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    /* Grade 3x2 de células para os gráficos do Power BI
+       Para mudar o número de colunas: altere "1fr 1fr 1fr"
+       Ex: "1fr 1fr" = 2 colunas, "1fr 1fr 1fr 1fr" = 4 colunas */
+    .embed-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 14px;
+    }
+
+    /* Célula da grade — onde o iframe do Power BI vai entrar */
+    .embed-cell {
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+
+    /* Efeito ao passar o mouse sobre a célula */
+    .embed-cell:hover {
+      box-shadow: 0 4px 20px rgba(37,99,235,0.08);
+      border-color: #bfdbfe;
+    }
+
+    /* Classe "wide" faz a célula ocupar 2 colunas da grade */
+    .embed-cell.wide { grid-column: span 2; }
+
+    /* Linha colorida no topo de cada célula (decoração) */
+    .embed-cell::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      border-radius: 14px 14px 0 0;
+      background: var(--blue); /* cor padrão — sobrescrita pelas classes abaixo */
+      opacity: 0.6;
+    }
+
+    /* Cores disponíveis para a linha do topo de cada célula.
+       Use como classe na div: class="embed-cell cell-orange" */
+    .embed-cell.cell-orange::before { background: var(--orange); }
+    .embed-cell.cell-blue::before   { background: var(--blue); }
+    .embed-cell.cell-green::before  { background: var(--green); }
+    .embed-cell.cell-navy::before   { background: var(--navy); }
+
+    /* Ícone grande dentro da célula (visível antes de embedar o Power BI) */
+    .cell-placeholder-icon  { font-size: 26px; opacity: 0.25; }
+
+    /* Texto de título do placeholder */
+    .cell-placeholder-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      opacity: 0.7;
+    }
+
+    /* Texto menor do placeholder (instrução de embed) */
+    .cell-placeholder-sub {
+      font-size: 10px;
+      color: var(--muted);
+      opacity: 0.4;
+      font-style: italic;
+    }
+
+    /* Etiqueta no canto superior esquerdo de cada célula */
+    .cell-tag {
+      position: absolute;
+      top: 12px;
+      left: 14px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      opacity: 0.6;
+    }
+
+
+    /* =====================================================
+       COLUNA DE CARDS — streaming ao vivo, à direita
+    ===================================================== */
+    .cards-col {
+      width: var(--cards-w);
+      background: #fff;
+      border-left: 1px solid var(--border);
+      padding: 24px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      flex-shrink: 0;
+      overflow-y: auto; /* scroll vertical se o conteúdo for maior que a tela */
+    }
+
+    /* Scrollbar discreta na coluna de cards */
+    .cards-col::-webkit-scrollbar { width: 3px; }
+    .cards-col::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* Título da coluna ("Ao vivo") */
+    .col-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    /* Card de dado (temperatura, umidade, etc) */
+    .card {
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: relative;
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+
+    .card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+
+    /* Barra colorida na lateral esquerda do card
+       A cor é definida inline no HTML: style="background:var(--orange)" */
+    .card-accent {
+      position: absolute;
+      left: 0; top: 14px; bottom: 14px;
+      width: 4px;
+      border-radius: 0 4px 4px 0;
+    }
+
+    /* Linha de cima do card: nome + ícone */
+    .card-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Número grande do card (ex: 24.5) */
+    .card-value {
+      font-size: 34px;
+      font-weight: 700;
+      letter-spacing: -1.5px;
+      line-height: 1;
+      margin-top: 4px;
+    }
+
+    /* Unidade menor ao lado do número (ex: °C, %) */
+    .card-unit {
+      font-size: 16px;
+      font-weight: 400;
+      opacity: 0.6;
+    }
+
+    /* Indicador de tendência (→ Estável, ↑ Subindo, ↓ Caindo) */
+    .card-trend {
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    /* Gráfico de linha histórico (sparkline) — área do mini gráfico */
+    .sparkline-placeholder {
+      width: 100%;
+      height: 28px;
+      margin-top: 6px;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .sparkline-placeholder svg { width: 100%; height: 100%; }
+
+    /* Card de gás tem fundo verde diferente dos outros */
+    .card-gas {
+      background: var(--green-bg);
+      border-color: #bbf7d0;
+    }
+
+    .card-gas .card-value { color: var(--green); }
+
+    /* Status embaixo do valor do gás (NORMAL / ATENÇÃO) */
+    .gas-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--green);
+      margin-top: 4px;
+    }
+
+    /* Ícone de check dentro do card de gás */
+    .gas-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: #fff;
+    }
+
+    /* Linha separadora entre seções dos cards */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 2px 0;
+    }
+
+    /* Título de subseção dentro dos cards (ex: "Médias do dia") */
+    .mini-title {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* Linha com dois mini cards lado a lado */
+    .stat-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Mini card de estatística (média, máx, mín) */
+    .stat-mini {
+      flex: 1;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .stat-mini-label {
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-mini-value {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
