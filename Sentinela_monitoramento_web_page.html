@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sentinela — Monitoramento de Ambiente</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Ruaniito-Iot-Dev/iot_docs@main/iot.css">
+   
+  <script>
+    // IMPORTANTE: Substitua esta string pela sua chave pública 'anon' obtida no painel do Supabase
+    // Ela geralmente começa com 'eyJhbGciOi...'
+    const apiKey = "sb_publishable__9nVjsgkQy46MGdAAswmFg_maUG_upo"; 
+    const supabaseUrl = "https://tnraavuevfmcbjaadzth.supabase.co/rest/v1/db_iot_temperatura?order=id.desc&limit=1";
+
+  setInterval(function () {
+    // Faz a requisição cobrando o tipo de dado correto e validando a resposta segura
+    fetch(supabaseUrl, {
+      method: "GET",
+      headers: {
+        "content-type": "application/json",
+        "apikey": apiKey,
+        "Authorization": "Bearer " + apiKey
+      }
+    })
+    .then(response => {
+      // O Supabase injeta automaticamente 'x-content-type-options: nosniff' nos headers de resposta.
+      // Aqui validamos se o tipo retornado confere com o que o navegador espera processar.
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new TypeError("Tipo de conteúdo inválido recebido do servidor!");
+      }
+
+      if (!response.ok) {
+        throw new Error("Erro na requisição: Status " + response.status);
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data && data.length > 0) {
+        const ultimoRegistro = data[0];
+        
+        // Atualiza os valores na tela mapeando as colunas do banco de dados
+        document.getElementById("temp-val").childNodes[0].nodeValue = ultimoRegistro.temperatura.toFixed(1) + " ";
+        document.getElementById("umi-val").childNodes[0].nodeValue = ultimoRegistro.umidade.toFixed(1) + " ";
+        document.getElementById("gas-val").childNodes[0].nodeValue = ultimoRegistro.Medicao_de_gas + " ";
+        
+        // Lógica visual para controle do estado do Alerta de Gás
+        const cardGas = document.getElementById("card-gas-elemento");
+        const gasIcon = document.getElementById("gas-icon");
+        const gasStatus = document.getElementById("gas-status");
+        const gasLabel = document.getElementById("gas-label");
+
+        if(ultimoRegistro.Medicao_de_gas > 350) { 
+          if(cardGas) {
+            cardGas.style.background = "rgba(239, 68, 68, 0.05)";
+            cardGas.style.borderColor = "rgba(239, 68, 68, 0.2)";
+          }
+          if(gasLabel) gasLabel.style.color = "var(--red)";
+          if(gasIcon) {
+            gasIcon.innerHTML = "⚠";
+            gasIcon.style.background = "rgba(239, 68, 68, 0.1)";
+            gasIcon.style.color = "var(--red)";
+          }
+          if(gasStatus) {
+            gasStatus.innerHTML = "ATENÇÃO";
+            gasStatus.style.color = "var(--red)";
+          }
+        } else {
+          if(cardGas) {
+            cardGas.style.background = "rgba(34, 197, 94, 0.05)";
+            cardGas.style.borderColor = "rgba(34, 197, 94, 0.2)";
+          }
+          if(gasLabel) gasLabel.style.color = "var(--green)";
+          if(gasIcon) {
+            gasIcon.innerHTML = "✓";
+            gasIcon.style.background = "rgba(34, 197, 94, 0.1)";
+            gasIcon.style.color = "var(--green)";
+          }
+          if(gasStatus) {
+            gasStatus.innerHTML = "NORMAL";
+            gasStatus.style.color = "var(--green)";
+          }
+        }
+      }
+    })
+    .catch(error => console.error("Erro na comunicação segura:", error));
+      
+    // Relógio dinâmico do sistema
+    let agora = new Date();
+    let dia = String(agora.getDate()).padStart(2, '0');
+    let mes = String(agora.getMonth() + 1).padStart(2, '0');
+    let ano = agora.getFullYear();
+    let hora = String(agora.getHours()).padStart(2, '0');
+    let minuto = String(agora.getMinutes()).padStart(2, '0');
+    let segundo = String(agora.getSeconds()).padStart(2, '0');
+    
+    document.getElementById("topbar-relogio").innerHTML = dia + "/" + mes + "/" + ano + " - " + hora + ":" + minuto + ":" + segundo;
+  }, 2000);
+</script>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-name">Sentinela</div>
+    <div class="sidebar-brand-sub">Monitoramento ambiental</div>
+    <div class="sidebar-status">
+      <div class="dot"></div>
+      Dados online
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-footer-label">Dispositivo</div>
+    <div class="device-info">
+      ESP32 · DHT22 · MQ-2<br>
+      Firmware v1.0.0<br>
+      Status: Via Cloud API
+    </div>
+  </div>
+</aside>
+
+<div class="main">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1>Monitoramento de ambiente</h1>
+      <p>Atualizado em tempo real via Supabase Cloud</p>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-badge">
+        <div class="dot" style="width:6px;height:6px;background:var(--green);box-shadow:0 0 6px var(--green);"></div>
+        Dados online
+      </div>
+      <div class="topbar-time" id="topbar-relogio">--/--/---- - --:--:--</div>
+    </div>
+  </header>
+
+  <div class="content">
+    <div class="embed-area">
+      <span class="section-title">Análises — Power BI</span>
+      <div class="embed-grid">
+        <iframe title="projeto_leitura_umidade_gas_temperatura" width="853" height="497" src="https://app.powerbi.com/reportEmbed?reportId=d9cfebe9-875b-4bff-a6e6-5f90f5c80199&autoAuth=true&ctid=4d6927e7-815c-486c-97a6-d227a5e13352" frameborder="0" allowFullScreen="true"></iframe>
+      </div>
+    </div>
+
+    <div class="cards-col">
+      <div class="col-title">Ao vivo</div>
+
+      <div class="card">
+        <div class="card-accent" style="background:var(--orange);"></div>
+        <div class="card-label">Temperatura <span>🌡️</span></div>
+        <div class="card-value" id="temp-val" style="color:var(--orange);">
+          -- <span class="card-unit">°C</span>
+        </div>
+        <div class="card-trend">→ Estável</div>
+        <div class="sparkline-placeholder">
+          <svg viewBox="0 0 220 28" preserveAspectRatio="none">
+            <polyline points="0,18 22,16 44,17 66,14 88,15 110,13 132,15 154,12 176,14 198,13 220,11" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+          </svg>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-accent" style="background:#2563eb;"></div>
+        <div class="card-label">Umidade <span>💧</span></div>
+        <div class="card-value" id="umi-val" style="color:#1d4ed8;">
+          -- <span class="card-unit">%</span>
+        </div>
+        <div class="card-trend">→ Estável</div>
+        <div class="sparkline-placeholder">
+          <svg viewBox="0 0 220 28" preserveAspectRatio="none">
+            <polyline points="0,14 22,16 44,13 66,15 88,14 110,17 132,14 154,16 176,15 198,14 220,16" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+          </svg>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="mini-title">Gás / Fumaça</div>
+
+      <div class="card card-gas" id="card-gas-elemento">
+        <div class="card-label" id="gas-label" style="color:var(--green);">
+          Leitura de Gases / Fumaça <span>🛡️</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:4px;">
+          <div class="gas-icon" id="gas-icon">✓</div>
+          <div class="card-value" id="gas-val">
+            -- <span class="card-unit" style="font-size:12px;">PPM</span>
+          </div>
+        </div>
+        <div class="gas-status" id="gas-status">NORMAL</div>
+      </div>
+
+      <div class="divider"></div>
+      <div class="mini-title">Médias do dia</div>
+
+      <div class="stat-row">
+        <div class="stat-mini">
+          <div class="stat-mini-label">Temp. máx.</div>
+          <div class="stat-mini-value" style="color:var(--red);">26.1°</div>
+        </div>
+        <div class="stat-mini">
+          <div class="stat-mini-label">Temp. mín.</div>
+          <div class="stat-mini-value" style="color:#1d4ed8;">22.8°</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
